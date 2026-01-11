@@ -1,0 +1,4 @@
+Flask==3.0.0
+pyotp==2.9.0
+qrcode==7.4.2
+email-validator==2.1.0
