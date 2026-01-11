@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+    
+    {% if sys_msg %}
+        <div style="background: #e17055; color: white; padding: 15px; border-radius: 10px; margin-bottom: 25px; animation: pulse 2s infinite;">
+            <strong>📢 ADMIN ALERT:</strong> {{ sys_msg }}
+        </div>
+        <style>@keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(225,112,85,0.7);} 70% {box-shadow: 0 0 0 10px rgba(225,112,85,0);} 100% {box-shadow: 0 0 0 0 rgba(225,112,85,0);} }</style>
+    {% endif %}
+
+    <h1>Welcome, {{ user.username }}</h1>
+    
+    <div style="margin-bottom: 30px;">
+        <span style="background: #a29bfe; padding: 5px 15px; border-radius: 15px; font-size: 0.9rem; font-weight: bold; color: #2d3436;">
+            Role: {{ user.role.upper() }}
+        </span>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.25); padding: 25px; border-radius: 15px; margin-bottom: 40px;">
+        {% if user.mfa_enabled %}
+            <h3 style="color:#55efc4; margin:0;">✅ Account Protected</h3>
+        {% else %}
+            <h3 style="color:#ff7675;">⚠️ Enable MFA Now</h3>
+            <div class="qr-box" style="margin: 20px 0;"><img src="data:image/png;base64, {{ qr_code }}" width="150" style="border-radius: 10px;"></div>
+            <form action="{{ url_for('enable_mfa') }}" method="POST">
+                <input type="text" name="otp" placeholder="Enter Authenticator Code" required>
+                <button type="submit">Activate MFA</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: left;">
+        
+        <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 20px;">
+            <h3>🔗 URL Check</h3>
+            <form method="POST">
+                <input type="hidden" name="check_url" value="true">
+                <input type="text" name="url_input" placeholder="http://suspicious.com" required>
+                <button type="submit" style="background: #0984e3;">Scan URL</button>
+            </form>
+            {% if url_result %}
+                <div style="margin-top: 15px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 5px;">
+                    <strong class="{{ url_result.risk }}">{{ url_result.status }}</strong>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 20px;">
+            <h3>📧 Email Check</h3>
+            <form method="POST">
+                <input type="hidden" name="check_email" value="true">
+                <input type="text" name="email_input" placeholder="check@email.com" required>
+                <button type="submit" style="background: #6c5ce7;">Check Email</button>
+            </form>
+            {% if email_result %}
+                <div style="margin-top: 15px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 5px;">
+                    <strong class="{{ email_result.risk }}">{{ email_result.status }}</strong>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 20px;">
+            <h3>🔑 Password Check</h3>
+            <form method="POST">
+                <input type="hidden" name="check_password" value="true">
+                <input type="password" name="pwd_input" placeholder="Check a password..." required>
+                <button type="submit" style="background: #fdcb6e; color: black;">Check Breach</button>
+            </form>
+            {% if pwd_result %}
+                <div style="margin-top: 15px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 5px;">
+                    <strong class="{{ pwd_result.risk }}">{{ pwd_result.status }}</strong>
+                    
+                    {% if pwd_result.suggestion %}
+                        <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+                            <p style="margin:0; font-size: 0.8rem; color: #dfe6e9;">💡 Recommended Strong Password:</p>
+                            <code style="display:block; margin-top:5px; font-size: 1rem; color: #55efc4; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; letter-spacing: 1px;">
+                                {{ pwd_result.suggestion }}
+                            </code>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 20px; text-align: left;">
+        <h3>📜 Login Activity</h3>
+        <table style="width: 100%; color: white; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.3);">
+                <th style="padding: 10px;">Time</th>
+                <th style="padding: 10px;">IP Address</th>
+                <th style="padding: 10px;">Status</th>
+            </tr>
+            {% for log in user.logs %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <td style="padding: 10px;">{{ log.time }}</td>
+                <td style="padding: 10px;">{{ log.ip }}</td>
+                <td style="padding: 10px; color: #55efc4;">Success</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <br><a href="{{ url_for('logout') }}" style="color: #ff7675; font-weight: bold; display:block; margin-top: 30px;">Logout</a>
+    <style>.high{color:#ff7675}.medium{color:#ffeaa7}.low{color:#55efc4}</style>
+{% endblock %}

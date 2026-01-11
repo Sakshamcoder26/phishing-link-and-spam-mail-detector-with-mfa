@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 style="color: #ff7675; margin-bottom: 5px;">🛡️ Admin Control Panel</h1>
+            <p style="color: #dfe6e9;">Welcome, Commander {{ current_user.username }}</p>
+        </div>
+        
+        <a href="{{ url_for('export_audit') }}" style="text-decoration: none;">
+            <button style="background: #00cec9; color: #2d3436; padding: 12px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+                📂 Download Audit Report (CSV)
+            </button>
+        </a>
+    </div>
+
+    <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.2);">
+        <h3 style="margin-bottom: 10px;">📢 System Broadcast</h3>
+        <p style="font-size: 0.9rem; color: #b2bec3;">Send a message to all users instantly.</p>
+        <form action="{{ url_for('send_broadcast') }}" method="POST" style="display: flex; gap: 10px;">
+            <input type="text" name="message" placeholder="e.g., Server maintenance at 10 PM..." value="{{ sys_msg if sys_msg else '' }}" style="flex: 1; padding: 10px; border-radius: 5px; border: none;">
+            <button type="submit" style="width: auto; padding: 10px 20px; background: #0984e3; margin: 0;">Send</button>
+            <button type="submit" name="message" value="" style="width: auto; padding: 10px 20px; background: #636e72; margin: 0;">Clear</button>
+        </form>
+        {% if sys_msg %}
+            <div style="margin-top: 10px; color: #ffeaa7;"><strong>Current Live Message:</strong> "{{ sys_msg }}"</div>
+        {% endif %}
+    </div>
+
+    <div style="background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 20px;">
+        <h3 style="margin-bottom: 20px;">👥 User Management</h3>
+        <table style="width: 100%; color: white; text-align: left; border-collapse: separate; border-spacing: 0 10px;">
+            <thead>
+                <tr style="color: #b2bec3; font-size: 0.9rem;">
+                    <th style="padding-left: 15px;">Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, info in all_users.items() %}
+                <tr style="background: rgba(0,0,0,0.25);">
+                    <td style="padding: 15px; font-weight: bold;">{{ name }}</td>
+                    <td style="padding: 15px;">{{ info.email }}</td>
+                    <td style="padding: 15px;">
+                        {% if info.role == 'admin' %}
+                            <span style="background: #ff7675; padding: 4px 8px; border-radius: 5px; font-size: 0.8rem;">ADMIN</span>
+                        {% else %}
+                            <span style="background: #74b9ff; padding: 4px 8px; border-radius: 5px; font-size: 0.8rem;">USER</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px;">
+                        {% if info.get('banned') %}
+                            <span style="color: #ff7675; font-weight: bold;">🚫 BANNED</span>
+                        {% else %}
+                            <span style="color: #55efc4;">Active</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px;">
+                        {% if info.role != 'admin' %}
+                            <a href="{{ url_for('ban_user', username=name) }}" style="text-decoration: none;">
+                                {% if info.get('banned') %}
+                                    <button style="padding: 5px 10px; width: auto; background: #55efc4; color: black; font-size: 0.8rem; margin:0; border:none; border-radius:5px; cursor:pointer;">Unban</button>
+                                {% else %}
+                                    <button style="padding: 5px 10px; width: auto; background: #ffeaa7; color: black; font-size: 0.8rem; margin:0; border:none; border-radius:5px; cursor:pointer;">Ban</button>
+                                {% endif %}
+                            </a>
+                            <a href="{{ url_for('delete_user', username=name) }}" onclick="return confirm('Delete permanently?');" style="text-decoration: none; margin-left: 5px;">
+                                <button style="padding: 5px 10px; width: auto; background: #ff7675; color: white; font-size: 0.8rem; margin:0; border:none; border-radius:5px; cursor:pointer;">Delete</button>
+                            </a>
+                        {% else %}
+                            <span style="color: #636e72;">Protected</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <br><a href="{{ url_for('logout') }}" style="color: #ff7675; font-weight: bold;">Logout</a>
+{% endblock %}

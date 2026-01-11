@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>2FA Required</h2>
+    <p style="color:white">Open Google Authenticator and enter code.</p>
+    <form method="POST">
+        <input type="text" name="otp" placeholder="123456" autocomplete="off" required>
+        <button type="submit">Verify</button>
+    </form>
+{% endblock %}
